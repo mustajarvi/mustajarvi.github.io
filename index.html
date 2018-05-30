@@ -21,7 +21,7 @@
 					download: true,
 					header: true,
 					complete: function(results, file) {
-						const data = results.data.map(r => {
+						let data = results.data.map(r => {
 							const tid = moment('20' + r['Tid']).valueOf();
 							const fukt = parseFloat(r['Krypgrund Fukt'].replace(',', '.'));
 							const temp = parseFloat(r['Krypgrund Temp'].replace(',', '.'));
@@ -29,6 +29,10 @@
 
 							return {tid, fukt, temp, uteTemp};
 						});
+
+						data = _(data).takeRight(30*24).value();
+
+						console.log(data);
 
 						// console.log('Parsing complete', results, file);
 
