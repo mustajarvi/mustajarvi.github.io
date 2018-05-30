@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/modules/export-data.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.4.0/papaparse.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash-fp/0.10.4/lodash-fp.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/locale/sv.js"></script>
+
+
+	<script type="text/javascript">
+		function init() {
+
+			Papa.parse(
+				'./data.txt',
+				{
+					download: true,
+					header: true,
+					complete: function(results, file) {
+						const data = results.data.map(r => {
+							const tid = moment('20' + r['Tid']).valueOf();
+							const fukt = parseFloat(r['Krypgrund Fukt'].replace(',', '.'));
+							const temp = parseFloat(r['Krypgrund Temp'].replace(',', '.'));
+							const uteTemp = parseFloat(r['Utetemp'].replace(',', '.'));
+
+							return {tid, fukt, temp, uteTemp};
+						});
+
+						// console.log('Parsing complete', results, file);
+
+						const fuktData = data.map(r => [r['tid'], r['fukt']]);
+						// console.log(fuktData);
+
+						const tempData = data.map(r => [r['tid'], r['temp']]);
+						// console.log(tempData);
+
+						const uteTemp = data.map(r => [r['tid'], r['uteTemp']]);
+						// console.log(uteTemp);
+
+						Highcharts.chart('container-fukt', {
+				            chart: {
+				                zoomType: 'x'
+				            },
+				            title: {
+				                text: 'Krypgrund'
+				            },
+				            subtitle: {
+				                text: document.ontouchstart === undefined ?
+				                        'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+				            },
+				            xAxis: {
+				                type: 'datetime'
+				            },
+				            yAxis: {
+				                title: {
+				                    text: 'Procent'
+				                }
+				            },
+				            legend: {
+				                enabled: true
+				            },
+				            plotOptions: {
+				                area: {
+				                    fillColor: {
+				                        linearGradient: {
+				                            x1: 0,
+				                            y1: 0,
+				                            x2: 0,
+				                            y2: 1
+				                        },
+				                        stops: [
+				                            [0, Highcharts.getOptions().colors[0]],
+				                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+				                        ]
+				                    },
+				                    marker: {
+				                        radius: 2
+				                    },
+				                    lineWidth: 1,
+				                    states: {
+				                        hover: {
+				                            lineWidth: 1
+				                        }
+				                    },
+				                    threshold: null
+				                }
+				            },
+
+				            series: [{
+				                type: 'area',
+				                name: 'Krypgrundsfukt',
+				        	    data: fuktData
+				            }, {
+				                type: 'area',
+				                name: 'Krypgrundstemp',
+				        	    data: tempData
+				            },
+				            {
+				                type: 'area',
+				                name: 'Ute temp',
+				        	    data: uteTemp
+				            }
+				            ]
+				        });
+					},
+					error: function(e, f) {
+						console.log(e, f)
+					}
+				}
+			);
+	    };
+
+	</script>
+	<title>Krypgrund etc.</title>
+</head>
+<body onload="init();">
+	<div id="container-fukt" style="min-width: 310px; height: 700px; margin: 0 auto"></div>
+</body>
+</html>
+
+
+
